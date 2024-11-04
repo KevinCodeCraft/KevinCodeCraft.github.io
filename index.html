@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alliance Fetcher</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Actuele buit NL1 - The Gladiators</h1>
+
+        <div v-if="loading" class="loading">Aan het laden...</div>
+
+        <div v-if="error" class="error">{{ error }}</div>
+
+        <div v-if="!loading && !error" class="container">
+            <div class="alliance-list">
+                <h2>Geslaagd</h2>
+                <div v-if="Object.keys(Succeed).length">
+                    <div v-for="(points, player) in Succeed" :key="player" class="player-info">
+                        <label>{{ player }}: {{ formatNumber(points) }}</label>
+                    </div>
+                </div>
+                <div v-else class="empty-message">
+                    <p>Geen geslaagde leden gevonden!</p>
+                </div>
+            </div>
+
+            <div class="alliance-list">
+                <h2>Gefaald</h2>
+                <div v-if="Object.keys(Failed).length">
+                    <div v-for="(points, player) in Failed" :key="player" class="player-info">
+                        <label>{{ player }}: {{ formatNumber(points) }}</label>
+                    </div>
+                </div>
+                <div v-else class="empty-message">
+                    <p>Geen gefaalde leden gevonden!</p>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="!loading && !error" class="alliance-list">
+            <h2>BG leden</h2>
+            <div v-if="allianceMemberRanking.length">
+                <div v-for="(member, index) in allianceMemberRanking" :key="index" class="player-info">
+                    <label><strong>#{{ member.placement }}</strong> {{ member.player }}</label>
+                    <label><strong> Buit:</strong> {{ formatNumber(member.points) }}</label>
+                </div>
+            </div>
+            <div v-else class="empty-message">
+                <p>Geen BG rankings gevonden!</p>
+            </div>
+        </div>
+
+        <div v-if="!loading && !error" class="alliance-list">
+            <h2>Alle spelers</h2>
+            <div v-if="players.length">
+                <div v-for="(player, index) in players" :key="index" class="player-info">
+                    <label><strong>#{{ player.placement }}</strong> {{ player.player }}</label>
+                    <label><strong> BG:</strong> {{ player.alliance }}</label>
+                    <label><strong> Buit:</strong> {{ formatNumber(player.points) }}</label>
+                </div>
+            </div>
+            <div v-else class="empty-message">
+                <p>Geen spelers gevonden!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="app.js"></script>
+</body>
+</html>
