@@ -54,13 +54,21 @@ const app = Vue.createApp({
                 const textData = await response.text();
                 const jsonData = JSON.parse(textData);
                 var Length = Math.ceil(jsonData.content.LR / 5) * 5;
+
+                var Done = false;
                 
-                for (let index = 5; index < Length; index += 10) {
+                for (let index = 5; index < Length && Done === false; index += 10) {
                     const response_ = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:2,%22LID%22:1,%22SV%22:%22${index}%22`);
                     const textData_ = await response_.text();
                     const jsonData_ = JSON.parse(textData_);
-        
+
                     const playersData = jsonData_.content.L;
+
+                    if (playersData[0][1] === 0) {
+                        Done = true;
+                        continue;
+                    }
+
                     allPlayers = allPlayers.concat(playersData.map(player => ({
                         player: player[2].N,
                         alliance: player[2].AN,
@@ -75,7 +83,7 @@ const app = Vue.createApp({
                             alliance: player[2].AN,
                             points: player[1],
                             placement: player[0]
-                        })));
+                    })));
                 }
         
                 let NoScore = {};
