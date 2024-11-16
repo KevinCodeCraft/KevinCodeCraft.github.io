@@ -140,7 +140,7 @@ const app = Vue.createApp({
             }
         },
 
-        GetAllianceName() {
+        async GetAllianceName() {
             var Id = 0;
             this.players.forEach(Player => {
                 if (Player.alliance === this.allianceName) {
@@ -151,7 +151,7 @@ const app = Vue.createApp({
             return Id;
         },
         
-        ChangeAlliance() {
+        async ChangeAlliance() {
             const waitForLoading = setInterval(() => {
                 if (!this.loading) {
                     clearInterval(waitForLoading);
@@ -176,7 +176,7 @@ const app = Vue.createApp({
             }, 100);
         },        
 
-        SetMinimum() {
+        async SetMinimum() {
             const waitForLoading = setInterval(() => {
                 if (!this.loading) {
                     clearInterval(waitForLoading);
