@@ -15,6 +15,29 @@ h1, h2 {
     gap: 20px;
 }
 
+.Prompts {
+    position: relative;
+    display: inline;
+
+    width: fit-content;
+}
+
+.Search{
+    display: inline;
+
+    position: relative;
+}
+
+.Search .Search {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background: #fff;
+    
+    padding: 10px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
 .player-list, .alliance-list {
     flex: 1;
     padding: 10px;

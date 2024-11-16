@@ -7,29 +7,75 @@ const app = Vue.createApp({
             allianceName: "The Gladiators",
             Succeed: {},
             Failed: {},
-            loading: true,
+            loading: false,
+            ShowContent: false,
+            newAllianceName: "The Gladiators",
             error: "",
-            allianceId: 229,
-            minimum: 7000000
+            allianceId: 229, // The Gladiators ID: 229, The Stoics ID: 52862
+            minimum: 7000000,
+            newMinimum: 7000000
         };
     },
     async mounted() {
-        await this.getAllRankings();
+        await this.GetPlayers();
     },
     methods: {
+        async GetPlayers() {
+            this.loading = true;
+
+            let allPlayers = [];
+
+            const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:2,%22LID%22:1,%22SV%22:%221%22`);
+            if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        
+            const textData = await response.text();
+            const jsonData = JSON.parse(textData);
+            var Length = Math.ceil(jsonData.content.LR / 5) * 5;
+
+            var Done = false;
+
+            for (let index = 5; index < Length && Done === false; index += 10) {
+                const response_ = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:2,%22LID%22:1,%22SV%22:%22${index}%22`);
+                const textData_ = await response_.text();
+                const jsonData_ = JSON.parse(textData_);
+
+                console.log(jsonData_)
+
+                const playersData = jsonData_.content.L;
+
+                if (playersData[0][1] === 0) {
+                    Done = true;
+                    continue;
+                }
+
+                allPlayers = allPlayers.concat(playersData.map(player => ({
+                    player: player[2].N,
+                    alliance: player[2].AN,
+                    allianceId: player[2].AID,
+                    points: player[1],
+                    placement: player[0]
+                })));
+            }
+
+            this.players = allPlayers;
+            this.loading = false;
+        }
+        ,
         async getAllRankings() {
             try {
                 const alliances = await fetch(`https://empire-api.fly.dev/EmpireEx_11/ain/%22AID%22:${this.allianceId}`);
                 if (!alliances.ok) {
                     throw new Error(`HTTP error! status: ${alliances.status}`);
                 }
-        
+
                 const atextData = await alliances.text();
                 const ajsonData = JSON.parse(atextData);
         
                 let Members = [];
                 let MemberData = ajsonData.content.A.M;
-                
+        
                 Members = MemberData
                     .map(member => ({
                         name: member.N,
@@ -43,48 +89,19 @@ const app = Vue.createApp({
                     })
                     .map(member => member.name);
         
-                let allPlayers = [];
+                let allPlayers = this.players;
                 let AllianceMembers = [];
-        
-                const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:2,%22LID%22:1,%22SV%22:%221%22`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-        
-                const textData = await response.text();
-                const jsonData = JSON.parse(textData);
-                var Length = Math.ceil(jsonData.content.LR / 5) * 5;
 
-                var Done = false;
-                
-                for (let index = 5; index < Length && Done === false; index += 10) {
-                    const response_ = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:2,%22LID%22:1,%22SV%22:%22${index}%22`);
-                    const textData_ = await response_.text();
-                    const jsonData_ = JSON.parse(textData_);
-
-                    const playersData = jsonData_.content.L;
-
-                    if (playersData[0][1] === 0) {
-                        Done = true;
-                        continue;
+                allPlayers.forEach(Player => {
+                    if (Player.allianceId === this.allianceId) {
+                        AllianceMembers.push({
+                            player: Player.player,
+                            alliance: Player.alliance,
+                            points: Player.points,
+                            placement: Player.placement
+                        });
                     }
-
-                    allPlayers = allPlayers.concat(playersData.map(player => ({
-                        player: player[2].N,
-                        alliance: player[2].AN,
-                        points: player[1],
-                        placement: player[0]
-                    })));
-        
-                    AllianceMembers = AllianceMembers.concat(playersData
-                        .filter(player => player[2].AN === this.allianceName)
-                        .map(player => ({
-                            player: player[2].N,
-                            alliance: player[2].AN,
-                            points: player[1],
-                            placement: player[0]
-                    })));
-                }
+                });
         
                 let NoScore = {};
                 NoScore = MemberData
@@ -96,7 +113,7 @@ const app = Vue.createApp({
         
                 let Succeed = {};
                 let Failed = {};
-
+        
                 AllianceMembers.forEach(member => {
                     if (member.points > this.minimum) {
                         Succeed[member.player] = member.points;
@@ -105,13 +122,10 @@ const app = Vue.createApp({
                     }
                 });
         
-                // Merge NoScore into Failed
                 for (const Member in NoScore) {
                     Failed[Member] = NoScore[Member];
                 }
-        
-                // Assign values to Vue data properties after all fetching and processing
-                this.players = allPlayers;
+
                 this.allianceMemberRanking = AllianceMembers;
                 this.allianceMembers = Members;
                 this.Succeed = Succeed;
@@ -122,9 +136,59 @@ const app = Vue.createApp({
                 this.error = `Error fetching data: ${error.message}`;
             } finally {
                 this.loading = false;
+                this.ShowContent = true;
             }
-        },        
+        },
+
+        GetAllianceName() {
+            var Id = 0;
+            this.players.forEach(Player => {
+                if (Player.alliance === this.allianceName) {
+                    Id = Player.allianceId;
+                }
+            })
+
+            return Id;
+        },
         
+        ChangeAlliance() {
+            const waitForLoading = setInterval(() => {
+                if (!this.loading) {
+                    clearInterval(waitForLoading);
+                    if (this.newAllianceName) {
+                        this.error = "";
+
+                        this.allianceName = this.newAllianceName;
+                        console.log(this.allianceName)
+
+                        const NewAllianceId = this.GetAllianceName();
+
+                        if (NewAllianceId === 0) {
+                            this.error = "Ongeldig BG."
+                        } else {
+                            this.allianceId = NewAllianceId;
+                            this.getAllRankings();
+                        }                        
+                    } else {
+                        this.error = "Ongeldig BG.";
+                    }
+                }
+            }, 100);
+        },        
+
+        SetMinimum() {
+            const waitForLoading = setInterval(() => {
+                if (!this.loading) {
+                    clearInterval(waitForLoading);
+                    if (this.newMinimum && typeof this.newMinimum === 'number' && this.newMinimum >= 0) {
+                        this.minimum = this.newMinimum;
+        
+                        this.getAllRankings();
+                    }
+                }
+            }, 100);
+        },
+
         formatNumber(number) {
             if (typeof number !== 'number') {
                 return number;

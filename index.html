@@ -8,13 +8,26 @@
 </head>
 <body>
     <div id="app">
-        <h1>Actuele buit NL1 - The Gladiators</h1>
+        <h1>Actuele buit NL1</h1>
 
-        <div v-if="loading" class="loading">Aan het laden...</div>
+        <div class="Prompts">
+            <div class="Search">
+                <input class="Search" id="allianceId" type="string" v-model="newAllianceName" placeholder="BG Naam" />
+                <button class="Search" @click="ChangeAlliance">Update</button>
+            </div>
+    
+            <div class="Search">
+                <input class="Search" id="minimum" type="number" v-model="newMinimum" placeholder="Limiet" />
+                <button class="Search" @click="SetMinimum">Update</button>
+            </div>
+        </div>
+
+        <div v-if="loading" class="loading">Gegevens aan het ophalen...</div>
+        <div v-if="!loading && !ShowContent" class="loading">Gegevens opgehaald, vul een BG naam in.</div>
 
         <div v-if="error" class="error">{{ error }}</div>
 
-        <div v-if="!loading && !error" class="container">
+        <div v-if="ShowContent" class="container">
             <div class="alliance-list">
                 <h2>Geslaagd</h2>
                 <div v-if="Object.keys(Succeed).length">
@@ -40,7 +53,7 @@
             </div>
         </div>
 
-        <div v-if="!loading && !error" class="alliance-list">
+        <div v-if="ShowContent" class="alliance-list">
             <h2>BG leden</h2>
             <div v-if="allianceMemberRanking.length">
                 <div v-for="(member, index) in allianceMemberRanking" :key="index" class="player-info">
@@ -53,7 +66,7 @@
             </div>
         </div>
 
-        <div v-if="!loading && !error" class="alliance-list">
+        <div v-if="ShowContent" class="alliance-list">
             <h2>Alle spelers</h2>
             <div v-if="players.length">
                 <div v-for="(player, index) in players" :key="index" class="player-info">
