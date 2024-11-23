@@ -13,58 +13,19 @@ const app = Vue.createApp({
             error: "",
             allianceId: 229, // The Gladiators ID: 229, The Stoics ID: 52862
             minimum: 7000000,
-            newMinimum: 7000000
+            newMinimum: 7000000,
+            event: 46,
+            newEvent: 46,
         };
     },
     async mounted() {
         await this.GetPlayers();
     },
     methods: {
-        async GetPlayers() {
-            this.loading = true;
-
-            let allPlayers = [];
-
-            const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:2,%22LID%22:1,%22SV%22:%221%22`);
-            if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-            }
-        
-            const textData = await response.text();
-            const jsonData = JSON.parse(textData);
-            var Length = Math.ceil(jsonData.content.LR / 5) * 5;
-
-            var Done = false;
-
-            for (let index = 5; index < Length && Done === false; index += 10) {
-                const response_ = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:2,%22LID%22:1,%22SV%22:%22${index}%22`);
-                const textData_ = await response_.text();
-                const jsonData_ = JSON.parse(textData_);
-
-                console.log(jsonData_)
-
-                const playersData = jsonData_.content.L;
-
-                if (playersData[0][1] === 0) {
-                    Done = true;
-                    continue;
-                }
-
-                allPlayers = allPlayers.concat(playersData.map(player => ({
-                    player: player[2].N,
-                    alliance: player[2].AN,
-                    allianceId: player[2].AID,
-                    points: player[1],
-                    placement: player[0]
-                })));
-            }
-
-            this.players = allPlayers;
-            this.loading = false;
-        }
-        ,
         async getAllRankings() {
             try {
+                console.log(this.allianceId);
+                
                 const alliances = await fetch(`https://empire-api.fly.dev/EmpireEx_11/ain/%22AID%22:${this.allianceId}`);
                 if (!alliances.ok) {
                     throw new Error(`HTTP error! status: ${alliances.status}`);
@@ -72,6 +33,8 @@ const app = Vue.createApp({
 
                 const atextData = await alliances.text();
                 const ajsonData = JSON.parse(atextData);
+
+                console.log(ajsonData);
         
                 let Members = [];
                 let MemberData = ajsonData.content.A.M;
@@ -139,8 +102,67 @@ const app = Vue.createApp({
                 this.ShowContent = true;
             }
         },
+        
+        async GetPlayers(GetRankings) {
+            this.loading = true;
 
-        async GetAllianceName() {
+            let allPlayers = [];
+            var Repeats = 1;
+
+            if (this.event == 46) {
+                Repeats = 5;
+            }
+
+            for (let category = 1; category < Repeats + 1; category++) {
+                const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.event},%22LID%22:${category},%22SV%22:%221%22`);
+                if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            
+                const textData = await response.text();
+                const jsonData = JSON.parse(textData);
+                var Length = Math.ceil(jsonData.content.LR / 5) * 5;
+                var Done = false;
+    
+                for (let index = 4; index < Length && Done === false; index += 8) {
+                    const response_ = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.event},%22LID%22:${category},%22SV%22:%22${index}%22`);
+                    const textData_ = await response_.text();
+                    const jsonData_ = JSON.parse(textData_);
+    
+                    //console.log(jsonData_)
+    
+                    const playersData = jsonData_.content.L;
+    
+                    //console.log(playersData);
+    
+                    if (Array.isArray(playersData) && playersData[0] && typeof playersData[0] === "number" && playersData[0][1] === 0) {
+                        Done = true;
+                        continue;
+                    }
+
+                    allPlayers = allPlayers.concat(
+                        playersData.map(player => ({
+                            player: player[2].N,
+                            alliance: player[2].AN,
+                            allianceId: player[2].AID,
+                            points: player[1]
+                        }))
+                    );
+                }
+            }
+
+            allPlayers.sort((a, b) => b.points - a.points);
+
+            this.players = allPlayers;
+            this.loading = false;
+
+            if (GetRankings) {
+                this.getAllRankings();
+            }
+        }
+        ,
+
+        async GetAllianceId() {
             var Id = 0;
             this.players.forEach(Player => {
                 if (Player.alliance === this.allianceName) {
@@ -148,29 +170,27 @@ const app = Vue.createApp({
                 }
             })
 
-            return Id;
+            return Promise.resolve(Id);
         },
         
         async ChangeAlliance() {
-            const waitForLoading = setInterval(() => {
+            const waitForLoading = setInterval(async () => {
                 if (!this.loading) {
                     clearInterval(waitForLoading);
+        
                     if (this.newAllianceName) {
                         this.error = "";
-
+        
                         this.allianceName = this.newAllianceName;
-                        console.log(this.allianceName)
-
-                        const NewAllianceId = this.GetAllianceName();
+        
+                        const NewAllianceId = await this.GetAllianceId();
 
                         if (NewAllianceId === 0) {
                             this.error = "Ongeldig BG."
                         } else {
                             this.allianceId = NewAllianceId;
                             this.getAllRankings();
-                        }                        
-                    } else {
-                        this.error = "Ongeldig BG.";
+                        }         
                     }
                 }
             }, 100);
@@ -184,6 +204,19 @@ const app = Vue.createApp({
                         this.minimum = this.newMinimum;
         
                         this.getAllRankings();
+                    }
+                }
+            }, 100);
+        },
+
+        async SetEvent(){
+            const waitForLoading = setInterval(() => {
+                if (!this.loading) {
+                    clearInterval(waitForLoading);
+                    if (this.newEvent && typeof this.newEvent === 'number' && this.newEvent >= 0) {
+                        this.event = this.newEvent;
+        
+                        this.GetPlayers(true);
                     }
                 }
             }, 100);

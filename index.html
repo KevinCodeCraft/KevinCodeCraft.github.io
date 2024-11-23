@@ -17,8 +17,13 @@
             </div>
     
             <div class="Search">
-                <input class="Search" id="minimum" type="number" v-model="newMinimum" placeholder="Limiet" />
+                <input class="Search" id="minimum" type="number" v-model="newMinimum" placeholder="Min. buit" />
                 <button class="Search" @click="SetMinimum">Update</button>
+            </div>
+
+            <div class="Search">
+                <input class="Search" id="event" type="number" v-model="newEvent" placeholder="Event" />
+                <button class="Search" @click="SetEvent">Update</button>
             </div>
         </div>
 
@@ -57,7 +62,7 @@
             <h2>BG leden</h2>
             <div v-if="allianceMemberRanking.length">
                 <div v-for="(member, index) in allianceMemberRanking" :key="index" class="player-info">
-                    <label><strong>#{{ member.placement }}</strong> {{ member.player }}</label>
+                    <label><strong>#{{ index + 1}}</strong> {{ member.player }}</label>
                     <label><strong> Buit:</strong> {{ formatNumber(member.points) }}</label>
                 </div>
             </div>
@@ -70,7 +75,7 @@
             <h2>Alle spelers</h2>
             <div v-if="players.length">
                 <div v-for="(player, index) in players" :key="index" class="player-info">
-                    <label><strong>#{{ player.placement }}</strong> {{ player.player }}</label>
+                    <label><strong>#{{ index + 1 }}</strong> {{ player.player }}</label>
                     <label><strong> BG:</strong> {{ player.alliance }}</label>
                     <label><strong> Buit:</strong> {{ formatNumber(player.points) }}</label>
                 </div>
