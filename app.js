@@ -14,8 +14,8 @@ const app = Vue.createApp({
             allianceId: 229, // The Gladiators ID: 229, The Stoics ID: 52862
             minimum: 7000000,
             newMinimum: 7000000,
-            event: 46,
-            newEvent: 46,
+            event: 2,
+            newEvent: 2,
         };
     },
     async mounted() {
@@ -34,7 +34,7 @@ const app = Vue.createApp({
                 const atextData = await alliances.text();
                 const ajsonData = JSON.parse(atextData);
 
-                console.log(ajsonData);
+                console.log(atextData);
         
                 let Members = [];
                 let MemberData = ajsonData.content.A.M;
@@ -121,24 +121,25 @@ const app = Vue.createApp({
             
                 const textData = await response.text();
                 const jsonData = JSON.parse(textData);
-                var Length = Math.ceil(jsonData.content.LR / 5) * 5;
+                var Length = Math.ceil(jsonData.content.LR / 4) * 4;
                 var Done = false;
     
+                Length = Length - 4;
+
                 for (let index = 4; index < Length && Done === false; index += 8) {
                     const response_ = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.event},%22LID%22:${category},%22SV%22:%22${index}%22`);
                     const textData_ = await response_.text();
                     const jsonData_ = JSON.parse(textData_);
     
-                    //console.log(jsonData_)
     
                     const playersData = jsonData_.content.L;
-    
-                    //console.log(playersData);
-    
-                    if (Array.isArray(playersData) && playersData[0] && typeof playersData[0] === "number" && playersData[0][1] === 0) {
+        
+                    if (!playersData[0] || playersData[0][1] === 0) {
                         Done = true;
                         continue;
                     }
+
+                    console.log(playersData[0][1]);
 
                     allPlayers = allPlayers.concat(
                         playersData.map(player => ({
