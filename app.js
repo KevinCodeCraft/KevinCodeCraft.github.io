@@ -134,7 +134,7 @@ const app = Vue.createApp({
     
                     const playersData = jsonData_.content.L;
         
-                    if (!playersData[0]) {
+                    if (playersData[0] === null) {
                         Done = true;
                         continue;
                     }
