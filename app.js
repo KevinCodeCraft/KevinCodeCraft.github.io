@@ -4,18 +4,18 @@ const app = Vue.createApp({
             players: [],
             allianceMemberRanking: [],
             allianceMembers: [],
-            allianceName: "The Gladiators",
+            allianceName: "The Stoics",
             Succeed: {},
             Failed: {},
             loading: false,
             ShowContent: false,
-            newAllianceName: "The Gladiators",
+            newAllianceName: "The Stoics",
             error: "",
             allianceId: 229, // The Gladiators ID: 229, The Stoics ID: 52862
             minimum: 7000000,
             newMinimum: 7000000,
-            event: 2,
-            newEvent: 2,
+            event: 46,
+            newEvent: 46,
         };
     },
     async mounted() {
