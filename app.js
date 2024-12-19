@@ -109,7 +109,7 @@ const app = Vue.createApp({
             let allPlayers = [];
             var Repeats = 1;
 
-            if (this.event === 46 || this.event === 44 || this.event === 58) {
+            if (this.event === 46 || this.event === 44 || this.event === 58 || this.event === 51) {
                 Repeats = 5;
             }
 
