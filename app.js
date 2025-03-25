@@ -19,7 +19,7 @@ const app = Vue.createApp({
         };
     },
     async mounted() {
-        await this.GetPlayers();
+        
     },
     methods: {
         async getAllRankings() {
