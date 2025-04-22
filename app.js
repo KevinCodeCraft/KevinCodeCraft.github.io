@@ -1,3 +1,12 @@
+let EventPointName = {
+    2 : "Buit",
+    46 : "Tabletten",
+    51 : "Tokens",
+    44 : "Roem",
+    58 : "Roem",
+    6 : "Macht",
+}
+
 const app = Vue.createApp({
     data() {
         return {
@@ -7,15 +16,16 @@ const app = Vue.createApp({
             allianceName: "Praetorium",
             Succeed: {},
             Failed: {},
-            loading: false,
+            loading: false, 
             ShowContent: false,
             newAllianceName: "Praetorium",
             error: "",
             allianceId: 52852, // The Gladiators ID: 229, The Stoics ID: 52862, Praetorium ID: 52852
             minimum: 1,
             newMinimum: 1,
-            event: 46,
-            newEvent: 46,
+            event: 2,
+            newEvent: 2,
+            PointName: 'Buit',
         };
     },
     async mounted() {
@@ -103,70 +113,109 @@ const app = Vue.createApp({
             }
         },
         
-        async GetPlayers(GetRankings) {
+        async GetPlayers(GetRankings) {            
             this.loading = true;
-
+        
             let allPlayers = [];
             var Repeats = 1;
-
+        
             if (this.event === 46 || this.event === 44 || this.event === 58 || this.event === 51) {
                 Repeats = 5;
             }
 
-            for (let category = 1; category < Repeats + 1; category++) {
-                const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.event},%22LID%22:${category},%22SV%22:%221%22`);
-                if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                }
-            
+            this.PointName = EventPointName[this.event];
+        
+            const FetchDataForIndex = async (index, category) => {
+                const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.event},%22LID%22:${category},%22SV%22:%${index}%22`);
                 const textData = await response.text();
                 const jsonData = JSON.parse(textData);
-                var Length = Math.ceil(jsonData.content.LR / 4) * 4;
-                var Done = false;
-    
-                Length = Length - 4;
-
-                for (let index = 4; index < Length && Done === false; index += 8) {
-                    const response_ = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.event},%22LID%22:${category},%22SV%22:%22${index}%22`);
-                    const textData_ = await response_.text();
-                    const jsonData_ = JSON.parse(textData_);
-    
-    
-                    const playersData = jsonData_.content.L;
         
-                    if (playersData[0] === null) {
+                if (!jsonData.content) {
+                    return null;
+                }
+        
+                const playersData = jsonData.content.L;
+        
+                if (playersData[0] === null || playersData[0][1] === 0) {
+                    return null;
+                }
+        
+                return playersData.map(player => ({
+                    player: player[2].N,
+                    alliance: player[2].AN,
+                    allianceId: player[2].AID,
+                    points: player[1]
+                }));
+            };
+
+            const playerSet = new Set();
+        
+            for (let category = 1; category < Repeats + 1; category++) {
+                if (this.event === 6) {
+                    category = 6;
+                }
+        
+                const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.event},%22LID%22:${category},%22SV%22:%221%22`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+        
+                const textData = await response.text();
+                const jsonData = JSON.parse(textData);
+                var Length = Math.ceil(jsonData.content.LR / 10) * 10;
+                var Done = false;
+        
+                Length = Length;
+        
+                console.log(jsonData.content.LR, Length);
+        
+                try {
+                    const result = await FetchDataForIndex(221, category);
+        
+                    result.forEach(player => {
+                        const playerIdentifier = player.player;
+                        if (!playerSet.has(playerIdentifier)) {
+                            playerSet.add(playerIdentifier);
+                            allPlayers.push(player);
+                        }
+                    });
+                } catch (error) {
+                    console.log("Event not there");
+                }
+        
+                for (let index = 2212; index < Length + 2212 && Done === false; index += 8) {
+                    console.log(index);
+        
+                    const result = await FetchDataForIndex(index, category);
+        
+                    if (result === null) {
                         Done = true;
                         continue;
                     }
-
-                    if (!playersData[0][1] === 0) {
-                        Done = true;
-                        continue;
-                    }
-
-
-                    console.log(playersData[0][1]);
-
-                    allPlayers = allPlayers.concat(
-                        playersData.map(player => ({
-                            player: player[2].N,
-                            alliance: player[2].AN,
-                            allianceId: player[2].AID,
-                            points: player[1]
-                        }))
-                    );
+        
+                    result.forEach(player => {
+                        const playerIdentifier = player.player;
+                        if (!playerSet.has(playerIdentifier)) {
+                            playerSet.add(playerIdentifier);
+                            allPlayers.push(player);
+                        }
+                    });
                 }
             }
-
+        
             allPlayers.sort((a, b) => b.points - a.points);
-
+        
+            console.log(allPlayers);
+        
             this.players = allPlayers;
             this.loading = false;
-
+        
             if (GetRankings) {
                 this.getAllRankings();
             }
         }
+
+        
         ,
 
         async GetAllianceId() {
@@ -222,7 +271,9 @@ const app = Vue.createApp({
                     clearInterval(waitForLoading);
                     if (this.newEvent && typeof this.newEvent === 'number' && this.newEvent >= 0) {
                         this.event = this.newEvent;
-        
+
+                        console.log(this.event);
+
                         this.GetPlayers(true);
                     }
                 }

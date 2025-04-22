@@ -22,7 +22,14 @@
             </div>
 
             <div class="Search">
-                <input class="Search" id="event" type="number" v-model="newEvent" placeholder="Event" />
+                <select class="Search" id="event" v-model="newEvent">
+                    <option :value="2">Buit</option>
+                    <option :value="46">Nomaden</option>
+                    <option :value="51">Samurai</option>
+                    <option :value="44">Oorlog Tussen Rijken</option>
+                    <option :value="58">Bloedkraaien</option>
+                    <option :value="6">Macht</option>
+                </select>
                 <button class="Search" @click="SetEvent">Update</button>
             </div>
         </div>
@@ -77,7 +84,7 @@
                 <div v-for="(player, index) in players" :key="index" class="player-info">
                     <label><strong>#{{ index + 1 }}</strong> {{ player.player }}</label>
                     <label><strong> BG:</strong> {{ player.alliance }}</label>
-                    <label><strong> Buit:</strong> {{ formatNumber(player.points) }}</label>
+                    <label>&nbsp;<strong>{{ PointName }}:</strong> {{ formatNumber(player.points) }}</label>
                 </div>
             </div>
             <div v-else class="empty-message">
