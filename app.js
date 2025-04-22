@@ -7,6 +7,15 @@ let EventPointName = {
     6 : "Macht",
 }
 
+let Increment = {
+    2: 10,
+    46: 8,
+    51: 8,
+    44: 8,
+    68: 8,
+    6: 10,
+}
+
 const app = Vue.createApp({
     data() {
         return {
@@ -43,8 +52,6 @@ const app = Vue.createApp({
 
                 const atextData = await alliances.text();
                 const ajsonData = JSON.parse(atextData);
-
-                console.log(atextData);
         
                 let Members = [];
                 let MemberData = ajsonData.content.A.M;
@@ -124,7 +131,8 @@ const app = Vue.createApp({
             }
 
             this.PointName = EventPointName[this.event];
-        
+            const playerSet = new Set();
+
             const FetchDataForIndex = async (index, category) => {
                 const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.event},%22LID%22:${category},%22SV%22:%${index}%22`);
                 const textData = await response.text();
@@ -148,7 +156,6 @@ const app = Vue.createApp({
                 }));
             };
 
-            const playerSet = new Set();
         
             for (let category = 1; category < Repeats + 1; category++) {
                 if (this.event === 6) {
@@ -162,13 +169,10 @@ const app = Vue.createApp({
         
                 const textData = await response.text();
                 const jsonData = JSON.parse(textData);
-                var Length = Math.ceil(jsonData.content.LR / 10) * 10;
+                var Length = Math.ceil(jsonData.content.LR / Increment[this.event]) * Increment[this.event];
                 var Done = false;
-        
-                Length = Length;
-        
-                console.log(jsonData.content.LR, Length);
-        
+                var FetchedCount = 0;
+
                 try {
                     const result = await FetchDataForIndex(221, category);
         
@@ -183,9 +187,16 @@ const app = Vue.createApp({
                     console.log("Event not there");
                 }
         
-                for (let index = 2212; index < Length + 2212 && Done === false; index += 8) {
-                    console.log(index);
-        
+                for (let index = 2215; FetchedCount < Length && Done === false; index += Increment[this.event]) {
+                    if (index === 2305) {
+                        index = 22105;
+                    }
+
+                    if (index === 23005) {
+                        index = 221005;
+                    }
+
+                    FetchedCount = FetchedCount + Increment[this.event];
                     const result = await FetchDataForIndex(index, category);
         
                     if (result === null) {
