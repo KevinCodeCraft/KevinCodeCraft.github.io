@@ -32,6 +32,11 @@
                 </select>
                 <button class="Search" @click="SetEvent">Update</button>
             </div>
+
+            <div class="Search">
+                <input class="Search" id="PlayerName" type="string" v-model="newPlayerName" placeholder="Speler Naam" />
+                <button class="Search" @click="SetPlayerSearch">Update</button>
+            </div>
         </div>
 
         <div v-if="loading" class="loading">Gegevens aan het ophalen...</div>
@@ -39,7 +44,7 @@
 
         <div v-if="error" class="error">{{ error }}</div>
 
-        <div v-if="ShowContent" class="container">
+        <div v-if="ShowContent && !showSearchResult" class="container">
             <div class="alliance-list">
                 <h2>Geslaagd</h2>
                 <div v-if="Object.keys(Succeed).length">
@@ -65,7 +70,7 @@
             </div>
         </div>
 
-        <div v-if="ShowContent" class="alliance-list">
+        <div v-if="ShowContent && !showSearchResult" class="alliance-list">
             <h2>BG leden</h2>
             <div v-if="allianceMemberRanking.length">
                 <div v-for="(member, index) in allianceMemberRanking" :key="index" class="player-info">
@@ -78,7 +83,7 @@
             </div>
         </div>
 
-        <div v-if="ShowContent" class="alliance-list">
+        <div v-if="ShowContent && !showSearchResult" class="alliance-list">
             <h2>Alle spelers</h2>
             <div v-if="players.length">
                 <div v-for="(player, index) in players" :key="index" class="player-info">
@@ -89,6 +94,22 @@
             </div>
             <div v-else class="empty-message">
                 <p>Geen spelers gevonden!</p>
+            </div>
+        </div>
+
+        <div v-if="showSearchResult" class="container">
+            <div class="alliance-list">
+                <h2>Info over {{PlayerName}}</h2>
+                
+                <div v-if="Object.keys(PlayerInformation).length">
+                    <div v-for="(value, key) in PlayerInformation" :key="key" class="player-info">
+                      <label><strong>{{ key }}</strong>{{ value }}</label>
+                    </div>
+                </div>
+                
+                <div v-else class="empty-message">
+                    <p>Geen info gevonden!</p>
+                </div>  
             </div>
         </div>
     </div>

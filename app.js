@@ -35,6 +35,11 @@ const app = Vue.createApp({
             event: 2,
             newEvent: 2,
             PointName: 'Buit',
+            PlayerName: "",
+            newPlayerName: "",
+            PlayerInfoShowing: false,
+            PlayerInformation: {},
+            showSearchResult: false,
         };
     },
     async mounted() {
@@ -42,9 +47,7 @@ const app = Vue.createApp({
     },
     methods: {
         async getAllRankings() {
-            try {
-                console.log(this.allianceId);
-                
+            try {                
                 const alliances = await fetch(`https://empire-api.fly.dev/EmpireEx_11/ain/%22AID%22:${this.allianceId}`);
                 if (!alliances.ok) {
                     throw new Error(`HTTP error! status: ${alliances.status}`);
@@ -142,11 +145,13 @@ const app = Vue.createApp({
                     return null;
                 }
         
-                const playersData = jsonData.content.L;
+                let playersData = jsonData.content.L;
         
                 if (playersData[0] === null || playersData[0][1] === 0) {
                     return null;
                 }
+
+                playersData = playersData.filter(element => element[2].R !== 1); // Remove all inactive
         
                 return playersData.map(player => ({
                     player: player[2].N,
@@ -155,7 +160,6 @@ const app = Vue.createApp({
                     points: player[1]
                 }));
             };
-
         
             for (let category = 1; category < Repeats + 1; category++) {
                 if (this.event === 6) {
@@ -174,7 +178,7 @@ const app = Vue.createApp({
                 var FetchedCount = 0;
 
                 try {
-                    const result = await FetchDataForIndex(221, category);
+                    const result = await FetchDataForIndex(221, category, true);
         
                     result.forEach(player => {
                         const playerIdentifier = player.player;
@@ -187,14 +191,22 @@ const app = Vue.createApp({
                     console.log("Event not there");
                 }
         
-                for (let index = 2215; FetchedCount < Length && Done === false; index += Increment[this.event]) {
-                    if (index === 2305) {
-                        index = 22105;
+                for (let index = 2212; FetchedCount < Length && Done === false; index += Increment[this.event]) {
+                    if (index >= 2300 && index < 2310) {
+                        if (Increment[this.event] === 10 ){
+                            index = 22105;
+                        } else {
+                            index = 22102;
+                        }
                     }
 
-                    if (index === 23005) {
-                        index = 221005;
-                    }
+                    if (index >= 23000 && index < 23010) {
+                        if (Increment[this.event] === 10) {
+                            index = 221005;
+                        } else {
+                            index = 221002;
+                        }
+                    }                    
 
                     FetchedCount = FetchedCount + Increment[this.event];
                     const result = await FetchDataForIndex(index, category);
@@ -224,11 +236,45 @@ const app = Vue.createApp({
             if (GetRankings) {
                 this.getAllRankings();
             }
-        }
+        },
 
+        async GetPlayer() {
+            try {
+                this.loading = true;
+
+                const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:6,%22LID%22:6,%22SV%22:%22${this.PlayerName}%22`);              
+
+                const textData = await response.text();
+                const jsonData = JSON.parse(textData);
+
+                if (!jsonData.content) {
+                    return null;
+                }
+
+                const playersData = jsonData.content.L;
+
+                playersData.forEach(element => {
+                    if (element[2].N === this.PlayerName) {
+
+                        console.log(element)
+
+                        this.PlayerInformation = {
+                            "Macht: ": element[2].MP,
+                            "Eer: ": element[2].H,
+                            "BG: ": element[2].AN,
+                        };
+                    }
+                });
+            } catch (error) {
+                console.log(error);
+            } finally {
+                console.log(this.PlayerInformation)
+
+                this.loading = false;
+                this.PlayerInfoShowing = true;
+            }
+        },
         
-        ,
-
         async GetAllianceId() {
             var Id = 0;
             this.players.forEach(Player => {
@@ -276,16 +322,34 @@ const app = Vue.createApp({
             }, 100);
         },
 
+        async SetPlayerSearch() {
+            const waitForLoading = setInterval(() => {
+                if (!this.loading) {
+                    clearInterval(waitForLoading);
+
+                    if (this.newPlayerName) {
+                        this.PlayerInfoShowing = false;
+                        this.PlayerName = this.newPlayerName;
+
+                        this.showSearchResult = true;
+        
+                        this.GetPlayer();
+                    }
+                }
+            }, 100);
+        },        
+
         async SetEvent(){
             const waitForLoading = setInterval(() => {
                 if (!this.loading) {
                     clearInterval(waitForLoading);
                     if (this.newEvent && typeof this.newEvent === 'number' && this.newEvent >= 0) {
-                        this.event = this.newEvent;
+                        if (this.newEvent !== this.event) {
+                            this.event = this.newEvent;    
+                            this.GetPlayers(true);
+                        }
 
-                        console.log(this.event);
-
-                        this.GetPlayers(true);
+                        this.showSearchResult = false;
                     }
                 }
             }, 100);
