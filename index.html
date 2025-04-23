@@ -46,7 +46,7 @@
 
         <div v-if="ShowContent && !showSearchResult" class="container">
             <div class="alliance-list">
-                <h2>Geslaagd</h2>
+                <h2 class="Center">Geslaagd</h2>
                 <div v-if="Object.keys(Succeed).length">
                     <div v-for="(points, player) in Succeed" :key="player" class="player-info">
                         <label>{{ player }}: {{ formatNumber(points) }}</label>
@@ -58,7 +58,7 @@
             </div>
 
             <div class="alliance-list">
-                <h2>Gefaald</h2>
+                <h2 class="Center">Gefaald</h2>
                 <div v-if="Object.keys(Failed).length">
                     <div v-for="(points, player) in Failed" :key="player" class="player-info">
                         <label>{{ player }}: {{ formatNumber(points) }}</label>
@@ -71,7 +71,7 @@
         </div>
 
         <div v-if="ShowContent && !showSearchResult" class="alliance-list">
-            <h2>BG leden</h2>
+            <h2 class="Center">BG leden</h2>
             <div v-if="allianceMemberRanking.length">
                 <div v-for="(member, index) in allianceMemberRanking" :key="index" class="player-info">
                     <label><strong>#{{ index + 1}}</strong> {{ member.player }}</label>
@@ -84,7 +84,7 @@
         </div>
 
         <div v-if="ShowContent && !showSearchResult" class="alliance-list">
-            <h2>Alle spelers</h2>
+            <h2 class="Center">Alle spelers</h2>
             <div v-if="players.length">
                 <div v-for="(player, index) in players" :key="index" class="player-info">
                     <label><strong>#{{ index + 1 }}</strong> {{ player.player }}</label>
@@ -98,18 +98,48 @@
         </div>
 
         <div v-if="showSearchResult" class="container">
-            <div class="alliance-list">
-                <h2>Info over {{PlayerName}}</h2>
+            <div class="alliance-list alliance-list--autosize">
                 
-                <div v-if="Object.keys(PlayerInformation).length">
-                    <div v-for="(value, key) in PlayerInformation" :key="key" class="player-info">
+                <div class="Left" v-if="Object.keys(PlayerInformation).length">
+                    <h2>Info:</h2>
+
+                    <div v-for="(value, key) in PlayerInformation.GeneralInfo" :key="key" class="player-info">
                       <label><strong>{{ key }}</strong>{{ value }}</label>
                     </div>
+
+                    <h2>Kastelen:</h2>
+
+                    <div v-for="(castle, index) in PlayerInformation.Castles.Green" :key="index" class="castle-info">
+                        <label><strong>{{ castle.index }}:</strong> {{ castle.value }}</label>
+                    </div>
+
+                    <div v-for="(castle, index) in PlayerInformation.Castles.Ice" :key="index" class="castle-info">
+                        <h3 v-if="index === 0">IJs:</h3>
+                        <label><strong>{{ castle.index }}:</strong> {{ castle.value }}</label>
+                    </div>
+
+                    <div v-for="(castle, index) in PlayerInformation.Castles.Sand" :key="index" class="castle-info">
+                        <h3 v-if="index === 0">Zand:</h3>
+                        <label><strong>{{ castle.index }}:</strong> {{ castle.value }}</label>
+                    </div>
+
+                    <div v-for="(castle, index) in PlayerInformation.Castles.Fire" :key="index" class="castle-info">
+                        <h3 v-if="index === 0">Vuur:</h3>
+                        <label><strong>{{ castle.index }}:</strong> {{ castle.value }}</label>
+                    </div>
+
+                    <div v-for="(castle, index) in PlayerInformation.Castles.Storm" :key="index" class="castle-info">
+                        <h3 v-if="index === 0">Storm:</h3>
+                        <label><strong>{{ castle.index }}:</strong> {{ castle.value }}</label>
+                    </div>
                 </div>
-                
-                <div v-else class="empty-message">
-                    <p>Geen info gevonden!</p>
-                </div>  
+            
+                <div class="Events">
+                    <h2>Events:</h2>
+                    <div v-if="PlayerInformation.Events">
+                        <label><strong>Huidige Event Score: </strong>{{ PlayerInformation.Events.EventScore }} {{ PointName }}</label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

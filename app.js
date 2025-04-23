@@ -16,6 +16,17 @@ let Increment = {
     6: 10,
 }
 
+let CastleTypes = {
+    1: "Hoofdkasteel",
+    3: "Hoofdstad",
+    4: "Buitenpost",
+    12: "HK Rijken",
+    22: "Handels dingetje",
+    23: "Konings Toren",
+    26: "Monument",
+    28: "Laboratorium",
+}
+
 const app = Vue.createApp({
     data() {
         return {
@@ -32,6 +43,7 @@ const app = Vue.createApp({
             allianceId: 52852, // The Gladiators ID: 229, The Stoics ID: 52862, Praetorium ID: 52852
             minimum: 1,
             newMinimum: 1,
+            ActiveEvent: 2,
             event: 2,
             newEvent: 2,
             PointName: 'Buit',
@@ -43,7 +55,7 @@ const app = Vue.createApp({
         };
     },
     async mounted() {
-        
+        this.CheckActiveEvent([44, 46, 51, 58]);
     },
     methods: {
         async getAllRankings() {
@@ -123,6 +135,33 @@ const app = Vue.createApp({
             }
         },
         
+        async CheckActiveEvent(eventIds) {
+            try {
+                for (let eventId of eventIds) {
+                    const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${eventId},%22LID%22:5,%22SV%22:%221%22`);
+                    const textData = await response.text();
+                    
+                    let jsonData;
+                    try {
+                        jsonData = JSON.parse(textData);
+                    } catch (error) {
+                        console.error(`Error parsing response for event ${eventId}:`, error);
+                        continue;
+                    }
+        
+                    if (jsonData && jsonData.content) {
+                        this.ActiveEvent = eventId;
+                        this.event = eventId;
+                        this.newEvent = eventId;
+                        this.PointName = EventPointName[eventId];
+
+                        return;
+                    }
+                }
+            } catch (error) {
+            }
+        },
+
         async GetPlayers(GetRankings) {            
             this.loading = true;
         
@@ -238,6 +277,33 @@ const app = Vue.createApp({
             }
         },
 
+        async CurrentEventScore() {
+            try {
+                const response = await fetch(`https://empire-api.fly.dev/EmpireEx_11/hgh/%22LT%22:${this.ActiveEvent},%22LID%22:5,%22SV%22:%22${this.PlayerName}%22`);
+
+                const textData = await response.text();
+                const jsonData = JSON.parse(textData);
+
+                if (!jsonData.content) {
+                    return null;
+                }
+
+                const playersData = jsonData.content.L;
+
+                playersData.forEach(element => {
+                    if (element[2].N === this.PlayerName) {
+                        if (!this.PlayerInformation.Events) {
+                            this.PlayerInformation.Events = [];
+                        }
+
+                        this.PlayerInformation.Events.EventScore = element[1].toLocaleString('en', { useGrouping: true }).replace(/,/g, ' ');;
+                    }
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        },
+
         async GetPlayer() {
             try {
                 this.loading = true;
@@ -255,21 +321,61 @@ const app = Vue.createApp({
 
                 playersData.forEach(element => {
                     if (element[2].N === this.PlayerName) {
-
                         console.log(element)
 
-                        this.PlayerInformation = {
-                            "Macht: ": element[2].MP,
+                        const MP = element[2].MP.toLocaleString('en', { useGrouping: true }).replace(/,/g, ' ');
+
+                        this.PlayerInformation.GeneralInfo = {
+                            "Macht: ": MP,
                             "Eer: ": element[2].H,
                             "BG: ": element[2].AN,
                         };
+
+                        this.PlayerInformation.Castles = {
+                            Green: [],
+                            Ice: [],
+                            Sand: [],
+                            Fire: [],
+                            Storm: []
+                        };
+
+                        element[2].AP.sort((a, b) => a[4] - b[4]);
+
+                        element[2].AP.forEach(castle => {
+                            if (castle[0] === 0) {
+                                this.PlayerInformation.Castles.Green.push({
+                                    index: CastleTypes[castle[4]],
+                                    value: `${castle[2]} - ${castle[3]}`
+                                });
+                            } else if (castle[0] === 1) {
+                                this.PlayerInformation.Castles.Sand.push({
+                                    index: CastleTypes[castle[4]],
+                                    value: `${castle[2]} - ${castle[3]}`
+                                });
+                            } else if (castle[0] === 2) {
+                                this.PlayerInformation.Castles.Ice.push({
+                                    index: CastleTypes[castle[4]],
+                                    value: `${castle[2]} - ${castle[3]}`
+                                });
+                            } else if (castle[0] === 3) {
+                                this.PlayerInformation.Castles.Fire.push({
+                                    index: CastleTypes[castle[4]],
+                                    value: `${castle[2]} - ${castle[3]}`
+                                });
+                            } else if (castle[0] === 4) {
+                                this.PlayerInformation.Castles.Storm.push({
+                                    index: CastleTypes[castle[4]],
+                                    value: `${castle[2]} - ${castle[3]}`
+                                });
+                            }
+                        });
+
+                        this.CurrentEventScore();
                     }
                 });
             } catch (error) {
                 console.log(error);
             } finally {
-                console.log(this.PlayerInformation)
-
                 this.loading = false;
                 this.PlayerInfoShowing = true;
             }

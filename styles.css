@@ -44,10 +44,33 @@ h1, h2 {
     border: 1px solid #ddd;
     border-radius: 5px;
     background: #fff;
-    margin-bottom: 20px; /* Add spacing below each list */
+    margin-bottom: 20px;
 }
 
-h2 {
+.alliance-list--autosize h3, h2 {
+    margin-bottom: 3px !important;
+}
+
+.alliance-list--autosize {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+}
+
+.alliance-list--autosize .Left {
+    flex: 1;
+}
+
+.alliance-list--autosize .Events {
+    width: 80%;
+}
+
+
+h2.Center {
     text-align: center;
 }
 
